@@ -1,46 +1,16 @@
-import React, { useState } from 'react';
-import styled, { createGlobalStyle, keyframes } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Icon } from '@iconify/react';
-import { useNavigate } from 'react-router-dom';
-
-// ─── Constants & Palette ──────────────────────────────────────────────────────
-const C = {
-  bg: '#080a0c',
-  chassis: '#12151a',
-  screen: '#0d0f12',
-  accent: '#00f5ff',
-  warning: '#f59e0b',
-  success: '#00ff9d',
-  text: '#e2e8f0',
-  textMuted: '#4a5568',
-  border: '#1e242e',
-};
+import { useLoginLogic } from '../hooks/useLoginLogic';
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 const pulse = keyframes`
-  0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px ${C.accent}); }
-  50% { opacity: 0.5; filter: drop-shadow(0 0 5px ${C.accent}); }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 `;
 
 const dataStream = keyframes`
   0% { transform: translateX(-100%); }
   100% { transform: translateX(400%); }
-`;
-
-const blink = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-`;
-
-// ─── Global Styles ────────────────────────────────────────────────────────────
-const GlobalStyle = createGlobalStyle`
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Outfit', sans-serif;
-    background: ${C.bg};
-    color: ${C.text};
-    overflow: hidden;
-  }
 `;
 
 // ─── Styled Components ────────────────────────────────────────────────────────
@@ -50,15 +20,18 @@ const TerminalContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  background: ${props => props.theme.industrial.colors.background};
   background-image: 
     linear-gradient(rgba(0, 245, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90px, rgba(0, 245, 255, 0.02) 1px, transparent 1px);
   background-size: 40px 40px;
+  color: ${props => props.theme.industrial.colors.text};
+  font-family: 'Outfit', sans-serif;
 `;
 
 const ControlPanel = styled.div`
-  background: ${C.chassis};
-  border: 2px solid ${C.border};
+  background: ${props => props.theme.industrial.colors.chassis};
+  border: 2px solid ${props => props.theme.industrial.colors.border};
   border-radius: 8px;
   padding: 32px;
   display: flex;
@@ -73,12 +46,12 @@ const ControlPanel = styled.div`
     right: 10px;
     font-family: monospace;
     font-size: 10px;
-    color: ${C.textMuted};
+    color: ${props => props.theme.industrial.colors.textMuted};
   }
 `;
 
 const DisplayMonitor = styled.div`
-  background: ${C.screen};
+  background: ${props => props.theme.industrial.colors.screen};
   border: 1px solid #1a1e23;
   padding: 24px;
   border-radius: 4px;
@@ -101,7 +74,11 @@ const TelemetryTag = styled.div<{ $variant?: 'warning' | 'success' }>`
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: ${props => props.$variant === 'warning' ? C.warning : props.$variant === 'success' ? C.success : C.accent};
+  color: ${props => {
+    if (props.$variant === 'warning') return props.theme.industrial.colors.warning;
+    if (props.$variant === 'success') return props.theme.industrial.colors.success;
+    return props.theme.industrial.colors.accent;
+  }};
   display: flex;
   align-items: center;
   gap: 6px;
@@ -112,18 +89,18 @@ const TelemetryTag = styled.div<{ $variant?: 'warning' | 'success' }>`
     height: 6px;
     border-radius: 50%;
     background: currentColor;
-    animation: ${pulse} 1.5s infinite;
+    animation: ${pulse} ${props => props.theme.industrial.animations.pulse};
   }
 `;
 
 const StateDisplay = styled.div`
-  border-left: 2px solid ${C.textMuted};
+  border-left: 2px solid ${props => props.theme.industrial.colors.textMuted};
   padding-left: 12px;
 `;
 
 const StateLabel = styled.div`
   font-size: 10px;
-  color: ${C.textMuted};
+  color: ${props => props.theme.industrial.colors.textMuted};
   text-transform: uppercase;
   font-weight: 700;
   margin-bottom: 2px;
@@ -132,7 +109,7 @@ const StateLabel = styled.div`
 const StateValue = styled.div<{ $highlight?: boolean }>`
   font-family: monospace;
   font-size: 16px;
-  color: ${props => props.$highlight ? C.warning : C.text};
+  color: ${props => props.$highlight ? props.theme.industrial.colors.warning : props.theme.industrial.colors.text};
   font-weight: 600;
 `;
 
@@ -146,13 +123,12 @@ const PinGrid = styled.div`
 const PinSlot = styled.div<{ $filled: boolean }>`
   width: 40px;
   height: 12px;
-  background: ${props => props.$filled ? C.accent : 'rgba(255,255,255,0.05)'};
-  border: 1px solid ${props => props.$filled ? C.accent : '#222'};
-  box-shadow: ${props => props.$filled ? `0 0 10px ${C.accent}` : 'none'};
+  background: ${props => props.$filled ? props.theme.industrial.colors.accent : 'rgba(255,255,255,0.05)'};
+  border: 1px solid ${props => props.$filled ? props.theme.industrial.colors.accent : '#222'};
+  box-shadow: ${props => props.$filled ? `0 0 10px ${props.theme.industrial.colors.accent}` : 'none'};
   transition: all 0.1s;
 `;
 
-// ─── Numpad ──────────────────────────────────────────────────────────────────
 const NumpadArea = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -163,8 +139,8 @@ const KeyButton = styled.button`
   width: 60px;
   height: 60px;
   background: #1a1e24;
-  border: 1px solid ${C.border};
-  color: ${C.text};
+  border: 1px solid ${props => props.theme.industrial.colors.border};
+  color: ${props => props.theme.industrial.colors.text};
   font-family: 'Outfit', sans-serif;
   font-size: 20px;
   font-weight: 600;
@@ -177,12 +153,12 @@ const KeyButton = styled.button`
 
   &:hover {
     background: #232a33;
-    border-color: ${C.accent};
+    border-color: ${props => props.theme.industrial.colors.accent};
   }
   
   &:active {
-    background: ${C.accent};
-    color: ${C.bg};
+    background: ${props => props.theme.industrial.colors.accent};
+    color: ${props => props.theme.industrial.colors.background};
     transform: scale(0.95);
   }
 `;
@@ -196,8 +172,8 @@ const ActionSide = styled.div`
 const EnterButton = styled.button`
   flex: 1;
   width: 60px;
-  background: ${C.success};
-  color: ${C.bg};
+  background: ${props => props.theme.industrial.colors.success};
+  color: ${props => props.theme.industrial.colors.background};
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -234,112 +210,91 @@ const SystemLine = styled.div`
     top: 0; left: 0;
     width: 30%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, ${C.accent}, transparent);
-    animation: ${dataStream} 2s infinite linear;
+    background: linear-gradient(90deg, transparent, ${props => props.theme.industrial.colors.accent}, transparent);
+    animation: ${dataStream} ${props => props.theme.industrial.animations.dataStream};
   }
 `;
 
+const BrandSpan = styled.span`
+  color: ${props => props.theme.industrial.colors.accent};
+`;
+
 // ─── Main Component ───────────────────────────────────────────────────────────
-const MAX_PIN = 4;
-
 export const LoginPage = () => {
-  const [pin, setPin] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleKey = (key: string) => {
-    if (key === 'C') {
-      setPin('');
-      return;
-    }
-    if (pin.length < MAX_PIN) {
-      setPin(prev => prev + key);
-    }
-  };
-
-  const handleAuth = () => {
-    if (pin.length === MAX_PIN) {
-      setLoading(true);
-      setTimeout(() => navigate('/orders'), 800);
-    }
-  };
+  const { pin, loading, MAX_PIN, handleKey, handleAuth, deleteLastDigit } = useLoginLogic();
 
   return (
-    <>
-      <GlobalStyle />
-      <TerminalContainer>
-        
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-1px' }}>
-            Acacia<span style={{ color: C.accent }}>Point</span>
-          </h1>
-          <div style={{ fontSize: '12px', color: C.textMuted, letterSpacing: '4px', textTransform: 'uppercase' }}>
-            Retail Interface v2.4
-          </div>
+    <TerminalContainer>
+      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-1px' }}>
+          Acacia<BrandSpan>Point</BrandSpan>
+        </h1>
+        <div style={{ fontSize: '12px', opacity: 0.5, letterSpacing: '4px', textTransform: 'uppercase' }}>
+          Retail Interface v1.1
         </div>
+      </div>
 
-        <ControlPanel>
-          <DisplayMonitor>
-            <StatusHeader>
-              <TelemetryTag>Node_Active</TelemetryTag>
-              <TelemetryTag $variant="warning">Auth_Required</TelemetryTag>
-            </StatusHeader>
+      <ControlPanel>
+        <DisplayMonitor>
+          <StatusHeader>
+            <TelemetryTag>Node_Active</TelemetryTag>
+            <TelemetryTag $variant="warning">Auth_Required</TelemetryTag>
+          </StatusHeader>
 
-            <StateDisplay>
-              <StateLabel>Operador Actual</StateLabel>
-              <StateValue>ID_CAJERO_01</StateValue>
-            </StateDisplay>
+          <StateDisplay>
+            <StateLabel>Operador Actual</StateLabel>
+            <StateValue>ID_CAJERO_01</StateValue>
+          </StateDisplay>
 
-            <StateDisplay>
-              <StateLabel>Estado de Estación</StateLabel>
-              <StateValue $highlight>FONDO_POR_CONFIRMAR</StateValue>
-            </StateDisplay>
+          <StateDisplay>
+            <StateLabel>Estado de Estación</StateLabel>
+            <StateValue $highlight>FONDO_POR_CONFIRMAR</StateValue>
+          </StateDisplay>
 
-            <PinGrid>
-              {Array.from({ length: MAX_PIN }).map((_, i) => (
-                <PinSlot key={i} $filled={i < pin.length} />
-              ))}
-            </PinGrid>
-
-            <div style={{ fontFamily: 'monospace', fontSize: '10px', color: C.textMuted }}>
-              [SYSTEM] Awaiting identity verification...<br/>
-              [SYSTEM] Register: TERM-04A
-            </div>
-
-            <SystemLine />
-          </DisplayMonitor>
-
-          <NumpadArea>
-            {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0'].map(k => (
-              <KeyButton key={k} onClick={() => handleKey(k)}>
-                {k}
-              </KeyButton>
+          <PinGrid>
+            {Array.from({ length: MAX_PIN }).map((_, i) => (
+              <PinSlot key={i} $filled={i < pin.length} />
             ))}
-          </NumpadArea>
+          </PinGrid>
 
-          <ActionSide>
-            <EnterButton onClick={handleAuth} disabled={pin.length < MAX_PIN || loading}>
-              {loading ? (
-                <Icon icon="svg-spinners:90-ring-with-bg" fontSize={24} />
-              ) : (
-                <>
-                  <Icon icon="mdi:key-variant" fontSize={24} />
-                  ABRIR<br/>CAJA
-                </>
-              )}
-            </EnterButton>
-            <KeyButton onClick={() => setPin(prev => prev.slice(0, -1))} style={{ width: 60, height: 60 }}>
-              <Icon icon="mdi:backspace" />
+          <div style={{ fontFamily: 'monospace', fontSize: '10px', opacity: 0.5 }}>
+            [SYSTEM] Awaiting identity verification...<br/>
+            [SYSTEM] Register: TERM-04A
+          </div>
+
+          <SystemLine />
+        </DisplayMonitor>
+
+        <NumpadArea>
+          {['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0'].map(k => (
+            <KeyButton key={k} onClick={() => handleKey(k)}>
+              {k}
             </KeyButton>
-          </ActionSide>
-        </ControlPanel>
+          ))}
+        </NumpadArea>
 
-        <div style={{ marginTop: 40, color: C.textMuted, fontSize: '11px', textAlign: 'center' }}>
-          DISTRIBUTED BY ACACIA RETAIL SYSTEMS<br/>
-          CONFIDENTIAL POS INTERFACE // GUATEMALA
-        </div>
-      </TerminalContainer>
-    </>
+        <ActionSide>
+          <EnterButton onClick={handleAuth} disabled={pin.length < MAX_PIN || loading}>
+            {loading ? (
+              <Icon icon="svg-spinners:90-ring-with-bg" fontSize={24} />
+            ) : (
+              <>
+                <Icon icon="mdi:key-variant" fontSize={24} />
+                ABRIR<br/>CAJA
+              </>
+            )}
+          </EnterButton>
+          <KeyButton onClick={deleteLastDigit} style={{ width: 60, height: 60 }}>
+            <Icon icon="mdi:backspace" />
+          </KeyButton>
+        </ActionSide>
+      </ControlPanel>
+
+      <div style={{ marginTop: 40, opacity: 0.5, fontSize: '11px', textAlign: 'center' }}>
+        DISTRIBUTED BY ACACIA RETAIL SYSTEMS<br/>
+        CONFIDENTIAL POS INTERFACE // GUATEMALA
+      </div>
+    </TerminalContainer>
   );
 };
 
