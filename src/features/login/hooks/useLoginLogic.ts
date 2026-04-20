@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 const MAX_PIN = 4;
 
@@ -7,6 +8,7 @@ export const useLoginLogic = () => {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
   const handleKey = (key: string) => {
     if (key === 'C') {
@@ -25,7 +27,16 @@ export const useLoginLogic = () => {
   const handleAuth = () => {
     if (pin.length === MAX_PIN) {
       setLoading(true);
-      setTimeout(() => navigate('/orders'), 800);
+      // Simulate system auth
+      setTimeout(() => {
+        login({
+          id: '2341',
+          name: 'Courtney Henry',
+          role: 'Cashier',
+        });
+        setLoading(false);
+        navigate('/orders');
+      }, 800);
     }
   };
 

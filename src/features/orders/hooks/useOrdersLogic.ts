@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
 import { MENU_ITEMS } from '../constants/menuData';
+import { useCartStore } from '../store/cartStore';
 
 export const useOrdersLogic = () => {
   const [activeCat, setActiveCat] = useState('lunch');
   const [search, setSearch] = useState('');
-  const [cart, setCart] = useState<{id:number, qty:number}[]>([]);
+  
+  // Use global cart store
+  const { cart, addToCart, changeQty } = useCartStore();
 
   const filtered = useMemo(() =>
     MENU_ITEMS.filter(i =>
@@ -13,20 +16,6 @@ export const useOrdersLogic = () => {
     ), [activeCat, search]);
 
   const getItem = (id: number) => MENU_ITEMS.find(i => i.id === id);
-
-  const addToCart = (id: number) => {
-    setCart(prev => {
-      const ex = prev.find(c => c.id === id);
-      if (ex) return prev.map(c => c.id === id ? { ...c, qty: c.qty + 1 } : c);
-      return [...prev, { id, qty: 1 }];
-    });
-  };
-
-  const changeQty = (id: number, delta: number) => {
-    setCart(prev =>
-      prev.map(c => c.id === id ? { ...c, qty: Math.max(1, c.qty + delta) } : c)
-    );
-  };
 
   const subtotal = cart.reduce((s, c) => {
     const item = getItem(c.id);

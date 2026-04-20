@@ -4,6 +4,7 @@ import { CATEGORIES } from '../constants/menuData';
 import { useOrdersLogic } from '../hooks/useOrdersLogic';
 import { ProductCard } from '../components/ProductCard';
 import { ReceiptItem } from '../components/ReceiptItem';
+import { useAuthStore } from '../../login/store/authStore';
 
 // ─── Styled Components ────────────────────────────────────────────────────────
 const AppLayout = styled.div`
@@ -15,9 +16,8 @@ const AppLayout = styled.div`
   font-family: 'Outfit', sans-serif;
 `;
 
-// ─── Sidebar (Navigation) ───
 const NavRail = styled.nav`
-  background: ${props => props.theme.industrial.colors.chassis}; // Using industrial dark for sidebar as per original
+  background: ${props => props.theme.industrial.colors.chassis};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -45,7 +45,6 @@ const NavItem = styled.button<{ $active?: boolean }>`
   }
 `;
 
-// ─── Main Content ───
 const MainContent = styled.main`
   display: flex;
   flex-direction: column;
@@ -83,7 +82,6 @@ const SearchBar = styled.div`
   }
 `;
 
-// ─── Category Selection ───
 const CatBar = styled.div`
   display: flex;
   gap: 12px;
@@ -116,7 +114,6 @@ const CatCard = styled.button<{ $active?: boolean }>`
   &:hover { transform: translateY(-2px); }
 `;
 
-// ─── Item Grid ───
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -125,7 +122,6 @@ const Grid = styled.div`
   overflow-y: auto;
 `;
 
-// ─── Invoice (Receipt) ───
 const ReceiptSidebar = styled.aside`
   background: ${props => props.theme.fresh.colors.surface};
   border-left: 1px solid ${props => props.theme.fresh.colors.border};
@@ -201,6 +197,8 @@ export const OrdersPage = () => {
     total,
   } = useOrdersLogic();
 
+  const user = useAuthStore((state) => state.user);
+
   return (
     <AppLayout>
       {/* Sidebar */}
@@ -227,10 +225,10 @@ export const OrdersPage = () => {
           </SearchBar>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ textAlign: 'right' }}>
-              <b style={{ display: 'block', fontSize: '0.85rem' }}>Courtney H.</b>
-              <small style={{ opacity: 0.5, fontSize: '0.75rem' }}>ID: 2341</small>
+              <b style={{ display: 'block', fontSize: '0.85rem' }}>{user?.name || 'Invitado'}</b>
+              <small style={{ opacity: 0.5, fontSize: '0.75rem' }}>ID: {user?.id || '----'}</small>
             </div>
-            <UserAvatar style={{ width: 36, height: 36, borderRadius: '50%' }} />
+            <UserAvatar />
           </div>
         </Header>
 
