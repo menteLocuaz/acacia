@@ -11,12 +11,16 @@ export const GlobalStyles = createGlobalStyle`
         background-color: #f8fafc;
         color: #1e293b;
         font-family: "Poppins", sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
     }
-
-    button, input {
-        font-family: inherit;
+    body::-webkit-scrollbar {
+    width: 12px;
+    background: rgba(55, 55, 55, 0.2);
+    filter: blur(10px);
+        }
+    body::-webkit-scrollbar-thumb {
+    background: rgba(84, 84, 84, 0.5);
+    border-radius: 10px;
+    
     }
 `;
 
